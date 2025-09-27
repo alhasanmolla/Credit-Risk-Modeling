@@ -1,0 +1,19 @@
+# params.yaml
+data_ingestion:
+  test_size: 0.25
+
+feature_engineering:
+  max_features: 50
+
+# Model Training Parameters
+input_dim: 24
+epochs: 50
+batch_size: 32
+units: 64
+dropout: 0.3
+activation: tanh
+rnn_type: LSTM
+lr: 0.001
+clipnorm: 1.0
+l2: 0.001
+patience: 10

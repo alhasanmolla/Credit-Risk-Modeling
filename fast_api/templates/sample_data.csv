@@ -1,0 +1,11 @@
+Age,Sex,Job,Housing,Saving accounts,Checking account,Credit amount,Duration,Purpose
+25,male,2,own,little,moderate,1000,24,car
+35,female,3,rent,moderate,rich,5000,36,furniture/equipment
+45,male,1,own,quite rich,little,8000,48,business
+28,female,2,rent,little,moderate,2000,12,radio/TV
+50,male,3,own,rich,rich,15000,60,education
+32,female,2,rent,moderate,little,3000,30,car
+38,male,1,free,little,moderate,2500,18,repairs
+42,female,3,own,quite rich,rich,12000,42,business
+29,male,2,rent,little,little,1800,24,domestic appliances
+55,female,2,own,moderate,moderate,6000,36,vacation/others

@@ -1,0 +1,11 @@
+input_dim: 5000
+epochs: 20
+batch_size: 32
+units: 64
+dropout: 0.3
+activation: tanh
+rnn_type: LSTM
+lr: 0.001
+clipnorm: 1.0
+l2: 0.0001
+patience: 5

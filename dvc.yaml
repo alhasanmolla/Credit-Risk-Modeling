@@ -1,0 +1,124 @@
+stages:
+  # Data Ingestion Stage
+  data_ingestion:
+    cmd: python src/data/data_ingestion.py
+    deps:
+      - src/data/data_ingestion.py
+      - notebooks/data_processing.csv
+      - params.yaml
+    outs:
+      - data/raw/train.csv
+      - data/raw/test.csv
+    params:
+      - data_ingestion.test_size
+
+  # Data Preprocessing Stage
+  data_preprocessing:
+    cmd: python src/data/data_preprocessing.py
+    deps:
+      - src/data/data_preprocessing.py
+      - data/raw/train.csv
+      - data/raw/test.csv
+    outs:
+      - data/interim/train_processed.csv
+      - data/interim/test_processed.csv
+
+  # Feature Engineering Stage
+  feature_engineering:
+    cmd: python src/features/feature_engineering.py
+    deps:
+      - src/features/feature_engineering.py
+      - data/interim/train_processed.csv
+      - data/interim/test_processed.csv
+      - params.yaml
+    outs:
+      - data/processed/train_features.csv
+      - data/processed/test_features.csv
+      - models/feature_scaler.pkl
+    params:
+      - feature_engineering.max_features
+
+  # Model Training Stage
+  model_training:
+    cmd: python src/model/model_building.py
+    deps:
+      - src/model/model_building.py
+      - data/processed/train_features.csv
+      - config.yaml
+    outs:
+      - models/rnn_model.h5
+    params:
+      - input_dim
+      - epochs
+      - batch_size
+      - units
+      - dropout
+      - activation
+      - rnn_type
+      - lr
+      - clipnorm
+      - l2
+      - patience
+
+  # Model Evaluation Stage
+  model_evaluation:
+    cmd: python src/model/model_evaluation.py
+    deps:
+      - src/model/model_evaluation.py
+      - models/rnn_model.h5
+      - data/processed/test_features.csv
+    metrics:
+      - reports/metrics.json:
+          cache: false
+
+  # Model Prediction Stage
+  model_prediction:
+    cmd: python src/model/predict_model.py
+    deps:
+      - src/model/predict_model.py
+      - models/rnn_model.h5
+      - data/processed/test_features.csv
+    outs:
+      - reports/predictions.csv
+
+  # Model Registration Stage
+  model_registration:
+    cmd: python src/model/register_model.py
+    deps:
+      - src/model/register_model.py
+      - models/rnn_model.h5
+      - reports/metrics.json
+      - reports/experiment_info.json
+    outs:
+      - mlruns/
+
+  # Data Visualization Stage
+  data_visualization:
+    cmd: python src/visualization/visualize.py
+    deps:
+      - src/visualization/visualize.py
+      - data/processed/train_features.csv
+      - data/processed/test_features.csv
+    outs:
+      - reports/figures/
+
+  # FastAPI Model Testing
+  api_model_testing:
+    cmd: python fast_api/load_model_test.py
+    deps:
+      - fast_api/load_model_test.py
+      - models/rnn_model.h5
+      - models/feature_scaler.pkl
+    outs:
+      - logs/api_test.log
+
+  # Documentation Generation
+  documentation:
+    cmd: cd docs && make.bat html
+    deps:
+      - docs/conf.py
+      - docs/index.rst
+      - docs/getting-started.rst
+      - docs/commands.rst
+    outs:
+      - docs/_build/html/

@@ -2,6 +2,10 @@
 
 A comprehensive machine learning project for credit risk prediction using German Credit Dataset. This project implements a complete MLOps pipeline with data preprocessing, feature engineering, model training, evaluation, and deployment using RNN (LSTM) architecture.
 
+![Credit Risk Analysis Overview](project_image/credit_risk_1.jpg)
+
+![Credit Risk Modeling Architecture](project_image/credit_risk_2.jpg)
+
 ## 🎯 Project Overview
 
 This project builds a robust credit risk prediction system that can assess the likelihood of loan default based on customer characteristics. The system uses a Recurrent Neural Network (LSTM) to predict credit risk and provides both programmatic API access and a user-friendly web interface.
@@ -42,6 +46,13 @@ Credit-Risk-Modeling/
 - **Model Persistence**: Saved models and preprocessing pipelines
 - **Health Monitoring**: System status monitoring and diagnostics
 
+### MLOps Pipeline (NEW)
+- **DVC Integration**: Complete data version control and reproducible ML pipeline
+- **Automated Workflow**: 9-stage pipeline from data ingestion to documentation
+- **Model Versioning**: Track model changes and performance over time
+- **Reproducible Experiments**: Consistent results across different environments
+- **Comprehensive Visualization**: Automated data analysis and reporting
+
 ### Web Interface
 - **User-friendly Forms**: Intuitive input interface for customer data
 - **Real-time Validation**: Input validation with immediate feedback
@@ -55,6 +66,13 @@ Credit-Risk-Modeling/
 - **Error Handling**: Comprehensive error management
 - **Documentation**: Auto-generated API documentation
 
+### Testing & Quality Assurance (NEW)
+- **API Model Testing**: Automated model loading verification
+- **Pipeline Testing**: End-to-end pipeline validation
+- **Documentation Generation**: Automated Sphinx documentation
+- **Error Logging**: Comprehensive logging system
+- **Performance Monitoring**: Model performance tracking
+
 ## 📊 Dataset
 
 The project uses the German Credit Dataset containing 1000 loan applications with 20 attributes including:
@@ -63,6 +81,21 @@ The project uses the German Credit Dataset containing 1000 loan applications wit
 - **Financial**: Credit amount, duration, savings, checking accounts
 - **Housing**: Housing status (own, rent, free)
 - **Purpose**: Loan purpose (car, business, education, etc.)
+
+### Data Visualization (NEW)
+The DVC pipeline automatically generates comprehensive visualizations:
+- **Target Variable Distribution**: Risk distribution analysis
+- **Numeric Feature Distribution**: Age, credit amount, duration distributions
+- **Correlation Matrix**: Feature relationships and dependencies
+- **Feature Importance**: Most predictive features for credit risk
+- **Risk Analysis**: Age vs credit amount by risk level
+- **Dataset Comparison**: Train vs test set characteristics
+
+All visualizations are saved in `reports/figures/` directory.
+
+![Generated Data Visualizations](project_image/credit_risk_1.jpg)
+
+*Sample visualization showing credit risk analysis patterns and insights*
 
 ## 🛠️ Technology Stack
 
@@ -95,6 +128,43 @@ The project uses the German Credit Dataset containing 1000 loan applications wit
 - Python 3.8 or higher
 - pip package manager
 - Virtual environment (recommended)
+- DVC (Data Version Control) for pipeline management
+
+### DVC Pipeline Setup (NEW)
+The project now includes a complete DVC pipeline for reproducible machine learning workflows:
+
+1. **Install DVC**
+```bash
+pip install dvc
+```
+
+2. **Initialize DVC (if not already done)**
+```bash
+dvc init
+```
+
+3. **Run the complete pipeline**
+```bash
+# Run all stages
+dvc repro
+
+# Or run individual stages
+dvc repro data_ingestion
+dvc repro model_training
+dvc repro data_visualization
+```
+
+4. **Pipeline Stages**
+- **Data Ingestion**: Split raw data into train/test sets
+- **Data Preprocessing**: Clean and prepare data
+- **Feature Engineering**: Create scaled features and encodings
+- **Model Training**: Train LSTM model with hyperparameter optimization
+- **Model Evaluation**: Generate performance metrics
+- **Model Prediction**: Create predictions on test data
+- **Model Registration**: Register model with MLflow
+- **Data Visualization**: Generate comprehensive plots and charts
+- **API Model Testing**: Test model loading functionality
+- **Documentation**: Build Sphinx documentation
 
 ### Installation
 
@@ -231,6 +301,20 @@ The LSTM model achieves strong performance on credit risk prediction:
 - **Precision**: Low false positive rate for risk assessment
 - **Recall**: Effective identification of high-risk customers
 - **F1-Score**: Balanced performance metric
+
+![LSTM Model Architecture](project_image/credit_risk_2.jpg)
+
+*Deep learning architecture for credit risk prediction using LSTM neural networks*
+
+### Pipeline Outputs (NEW)
+The DVC pipeline generates comprehensive project artifacts:
+- **Trained Model**: `models/rnn_model.h5` - Production-ready LSTM model
+- **Feature Scaler**: `models/feature_scaler.pkl` - Preprocessing pipeline
+- **Performance Metrics**: `reports/metrics.json` - Model evaluation results
+- **Predictions**: `reports/predictions.csv` - Test set predictions
+- **Visualizations**: `reports/figures/` - Data analysis plots
+- **API Test Log**: `logs/api_test.log` - Model loading verification
+- **Documentation**: `docs/_build/html/` - Generated documentation
 
 ## 🔧 Development Workflow
 

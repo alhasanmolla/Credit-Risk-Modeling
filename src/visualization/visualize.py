@@ -205,8 +205,8 @@ def main():
     """Main function to run visualizations."""
     try:
         # Define paths
-        train_file = "data/processed/train_features.csv"
-        test_file = "data/processed/test_features.csv"
+        train_file = "datas/processed/train_features.csv"
+        test_file = "datas/processed/test_features.csv"
         output_dir = "reports/figures"
         
         # Check if files exist

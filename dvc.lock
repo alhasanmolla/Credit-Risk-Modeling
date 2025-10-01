@@ -13,52 +13,52 @@ stages:
       size: 277
     - path: src/data/data_ingestion.py
       hash: md5
-      md5: 47eab3d30a6f83a6bb0db995df7cc491
-      size: 3888
+      md5: d420f593efb6350c287b5e1d8bd7c240
+      size: 3889
     params:
       params.yaml:
         data_ingestion.test_size: 0.25
     outs:
-    - path: data/raw/test.csv
+    - path: datas/raw/test.csv
       hash: md5
       md5: 9c8a9f64ea08612219290d58624e1c31
       size: 13553
-    - path: data/raw/train.csv
+    - path: datas/raw/train.csv
       hash: md5
       md5: 4bf60797641adbd2b7b4b8a125bc10e2
       size: 40128
   data_preprocessing:
     cmd: python src/data/data_preprocessing.py
     deps:
-    - path: data/raw/test.csv
+    - path: datas/raw/test.csv
       hash: md5
       md5: 9c8a9f64ea08612219290d58624e1c31
       size: 13553
-    - path: data/raw/train.csv
+    - path: datas/raw/train.csv
       hash: md5
       md5: 4bf60797641adbd2b7b4b8a125bc10e2
       size: 40128
     - path: src/data/data_preprocessing.py
       hash: md5
-      md5: 792a2044937aac19da362586e3327535
-      size: 1786
+      md5: 7b2b85a32d4e4383e61429be5a56baf2
+      size: 1789
     outs:
-    - path: data/interim/test_processed.csv
+    - path: datas/interim/test_processed.csv
       hash: md5
       md5: 9c8a9f64ea08612219290d58624e1c31
       size: 13553
-    - path: data/interim/train_processed.csv
+    - path: datas/interim/train_processed.csv
       hash: md5
       md5: 4bf60797641adbd2b7b4b8a125bc10e2
       size: 40128
   feature_engineering:
     cmd: python src/features/feature_engineering.py
     deps:
-    - path: data/interim/test_processed.csv
+    - path: datas/interim/test_processed.csv
       hash: md5
       md5: 9c8a9f64ea08612219290d58624e1c31
       size: 13553
-    - path: data/interim/train_processed.csv
+    - path: datas/interim/train_processed.csv
       hash: md5
       md5: 4bf60797641adbd2b7b4b8a125bc10e2
       size: 40128
@@ -68,17 +68,17 @@ stages:
       size: 277
     - path: src/features/feature_engineering.py
       hash: md5
-      md5: cd7657f2445678f00b6f9b930f9736cf
-      size: 4209
+      md5: e17934250904c8dea772a69715751af6
+      size: 4214
     params:
       params.yaml:
         feature_engineering.max_features: 50
     outs:
-    - path: data/processed/test_features.csv
+    - path: datas/processed/test_features.csv
       hash: md5
       md5: 44e869121adbe913f4b199bff7b71ab5
       size: 50130
-    - path: data/processed/train_features.csv
+    - path: datas/processed/train_features.csv
       hash: md5
       md5: 147861ad99b74e72b753d98400d51294
       size: 149440
@@ -93,14 +93,22 @@ stages:
       hash: md5
       md5: 1611fc7ef89c0fb703adbed7897cec06
       size: 155
-    - path: data/processed/train_features.csv
+    - path: datas/processed/train_features.csv
       hash: md5
       md5: 147861ad99b74e72b753d98400d51294
       size: 149440
+    - path: mlflow_config.yaml
+      hash: md5
+      md5: 24c798a5d21772d3f3ab0de112c934af
+      size: 916
+    - path: src/model/mlflow_utils.py
+      hash: md5
+      md5: 13cbe8e667b403b009c3d7440a7ad3da
+      size: 5370
     - path: src/model/model_building.py
       hash: md5
-      md5: 5e18f1ba4b13d55be5bfb9ab48a84ecf
-      size: 6493
+      md5: 1f58dbd48150d417a06303357a12ef01
+      size: 11446
     params:
       params.yaml:
         activation: tanh
@@ -117,63 +125,84 @@ stages:
     outs:
     - path: models/rnn_model.h5
       hash: md5
-      md5: 9df3ec9dddce8fa4399ca389833dd107
-      size: 111144
+      md5: bf7500442ff0c5ebf5cc01204729e311
+      size: 254912
   model_evaluation:
     cmd: python src/model/model_evaluation.py
     deps:
-    - path: data/processed/test_features.csv
+    - path: datas/processed/test_features.csv
       hash: md5
       md5: 44e869121adbe913f4b199bff7b71ab5
       size: 50130
+    - path: mlflow_config.yaml
+      hash: md5
+      md5: 24c798a5d21772d3f3ab0de112c934af
+      size: 916
     - path: models/rnn_model.h5
       hash: md5
-      md5: 9df3ec9dddce8fa4399ca389833dd107
-      size: 111144
+      md5: bf7500442ff0c5ebf5cc01204729e311
+      size: 254912
+    - path: src/model/mlflow_utils.py
+      hash: md5
+      md5: 13cbe8e667b403b009c3d7440a7ad3da
+      size: 5370
     - path: src/model/model_evaluation.py
       hash: md5
-      md5: 7b158995d97d08a02c3037e8228975b9
-      size: 2939
+      md5: 11d081a904a129bce7f982d4816f92f5
+      size: 9911
     outs:
+    - path: reports/figures/
+      hash: md5
+      md5: c518122e87d81495e6f8c3ee0eaa4828.dir
+      size: 92469
+      nfiles: 4
     - path: reports/metrics.json
       hash: md5
-      md5: d6c768f3e8f92152b3bbadd51b5e50ab
-      size: 132
+      md5: c86ee97908d5bcb7f5b096517bddf7db
+      size: 351
   model_prediction:
     cmd: python src/model/predict_model.py
     deps:
-    - path: data/processed/test_features.csv
+    - path: datas/processed/test_features.csv
       hash: md5
       md5: 44e869121adbe913f4b199bff7b71ab5
       size: 50130
     - path: models/rnn_model.h5
       hash: md5
-      md5: 9df3ec9dddce8fa4399ca389833dd107
-      size: 111144
+      md5: bf7500442ff0c5ebf5cc01204729e311
+      size: 254912
     - path: src/model/predict_model.py
       hash: md5
-      md5: 595e56b298dd3a63ad1b717e155f1e07
-      size: 3875
+      md5: 84bfc77530913ab0282cbda8d5e75a5c
+      size: 3876
     outs:
     - path: reports/predictions.csv
       hash: md5
-      md5: bf620469bf5e1fc5d86b457808845f0b
-      size: 3374
+      md5: 639f3d5e6a3c9d355cfbb730a10ddc60
+      size: 3359
   model_registration:
     cmd: python src/model/register_model.py
     deps:
+    - path: mlflow_config.yaml
+      hash: md5
+      md5: 24c798a5d21772d3f3ab0de112c934af
+      size: 916
     - path: models/rnn_model.h5
       hash: md5
-      md5: 9df3ec9dddce8fa4399ca389833dd107
-      size: 111144
-    - path: reports/experiment_info.json
-      hash: md5
-      md5: 543f38673f32f341f4d8081237bd1543
-      size: 323
+      md5: bf7500442ff0c5ebf5cc01204729e311
+      size: 254912
     - path: reports/metrics.json
       hash: md5
-      md5: d6c768f3e8f92152b3bbadd51b5e50ab
-      size: 132
+      md5: c86ee97908d5bcb7f5b096517bddf7db
+      size: 351
+    - path: src/model/mlflow_utils.py
+      hash: md5
+      md5: 13cbe8e667b403b009c3d7440a7ad3da
+      size: 5370
+    - path: src/model/model_registry.py
+      hash: md5
+      md5: 049b475abae8bbc92bfd8e07238b6d3e
+      size: 9150
     - path: src/model/register_model.py
       hash: md5
       md5: e5ec1a42796191edc08b21376c4e49c0
@@ -181,24 +210,28 @@ stages:
     outs:
     - path: mlruns/
       hash: md5
-      md5: 59f9d8a553bed8543f1b78747776f7d3.dir
-      size: 387
-      nfiles: 2
+      md5: ece6c56021d327437c160aa28cedb83d.dir
+      size: 5095920
+      nfiles: 285
+    - path: reports/experiment_info.json
+      hash: md5
+      md5: 4e4347a83ba3299a6408b42e067d4d8b
+      size: 1042
   data_visualization:
     cmd: python src/visualization/visualize.py
     deps:
-    - path: data/processed/test_features.csv
+    - path: datas/processed/test_features.csv
       hash: md5
       md5: 44e869121adbe913f4b199bff7b71ab5
       size: 50130
-    - path: data/processed/train_features.csv
+    - path: datas/processed/train_features.csv
       hash: md5
       md5: 147861ad99b74e72b753d98400d51294
       size: 149440
     - path: src/visualization/visualize.py
       hash: md5
-      md5: 18474badede2c337393d0e6f7dd18ccd
-      size: 8337
+      md5: 01468406c46aa6de20db19c02e1a8343
+      size: 8339
     outs:
     - path: reports/figures/
       hash: md5
@@ -218,12 +251,12 @@ stages:
       size: 671
     - path: models/rnn_model.h5
       hash: md5
-      md5: 9df3ec9dddce8fa4399ca389833dd107
-      size: 111144
+      md5: bf7500442ff0c5ebf5cc01204729e311
+      size: 254912
     outs:
     - path: logs/api_test.log
       hash: md5
-      md5: 2437c8a50edebbab5480eb24f7966b7d
+      md5: c7f21ff86aaeeb876d0c9f754963f957
       size: 1323
   documentation:
     cmd: cd docs && make.bat html
@@ -250,3 +283,39 @@ stages:
       md5: b23587196623685ddff9bd0df36eafe2.dir
       size: 88102
       nfiles: 24
+  model_production:
+    cmd: python src/model/production_model_manager.py
+    deps:
+    - path: mlflow_config.yaml
+      hash: md5
+      md5: 24c798a5d21772d3f3ab0de112c934af
+      size: 916
+    - path: models/feature_scaler.pkl
+      hash: md5
+      md5: 9a5cc0ef87234df64fcb60f34398edb0
+      size: 671
+    - path: models/rnn_model.h5
+      hash: md5
+      md5: bf7500442ff0c5ebf5cc01204729e311
+      size: 254912
+    - path: reports/metrics.json
+      hash: md5
+      md5: c86ee97908d5bcb7f5b096517bddf7db
+      size: 351
+    - path: src/model/mlflow_utils.py
+      hash: md5
+      md5: 13cbe8e667b403b009c3d7440a7ad3da
+      size: 5370
+    - path: src/model/model_registry.py
+      hash: md5
+      md5: 049b475abae8bbc92bfd8e07238b6d3e
+      size: 9150
+    - path: src/model/production_model_manager.py
+      hash: md5
+      md5: a58534da557d754adcf6ca729de7ccc6
+      size: 18101
+    outs:
+    - path: models/production_model.h5
+      hash: md5
+      md5: 728c36505f9c18b21868008037f7afbe
+      size: 105448

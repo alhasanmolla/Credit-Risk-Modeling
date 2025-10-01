@@ -81,9 +81,9 @@ class FeatureEngineering:
     def main():
         try:
             # Load train and test data
-            train_data = pd.read_csv('./data/interim/train_processed.csv')
-            test_data = pd.read_csv('./data/interim/test_processed.csv')
-            logging.info('Train and test data loaded')
+            train_data = pd.read_csv('./datas/interim/train_processed.csv')
+            test_data = pd.read_csv('./datas/interim/test_processed.csv')
+            logging.info('Train and test datas loaded')
 
             # Feature engineering
             X_train, y_train = FeatureEngineering.feature_engineer(train_data)
@@ -102,8 +102,8 @@ class FeatureEngineering:
             print(test_df.head())
 
             # Save processed data
-            FeatureEngineering.save_data(train_df, os.path.join('./data', 'processed', 'train_features.csv'))
-            FeatureEngineering.save_data(test_df, os.path.join('./data', 'processed', 'test_features.csv'))
+            FeatureEngineering.save_data(train_df, os.path.join('./datas', 'processed', 'train_features.csv'))
+            FeatureEngineering.save_data(test_df, os.path.join('./datas', 'processed', 'test_features.csv'))
             logging.info('Feature engineering completed and files saved')
         except Exception as e:
             logging.error('Feature engineering failed: %s', e)

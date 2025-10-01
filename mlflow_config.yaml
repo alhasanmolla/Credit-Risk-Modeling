@@ -1,0 +1,37 @@
+# MLFlow Configuration
+
+# Tracking Server Configuration
+tracking_server:
+  uri: "file:///A:/end-to-end-data-scientist-project/Credit-Risk-Modeling/mlruns"
+  port: 5000
+
+# Experiment Configuration
+experiment:
+  name: "credit_risk_modeling"
+  tags:
+    project: "credit_risk"
+    model_type: "rnn"
+    domain: "finance"
+
+# Model Registry Configuration
+model_registry:
+  model_name: "credit_risk_rnn"
+  stages:
+    - "None"      # Default stage for new models
+    - "Staging"   # For models under evaluation
+    - "Production"  # For deployed models
+    - "Archived"    # For old models
+
+# Artifact Configuration
+artifacts:
+  log_artifacts: true
+  log_model: true
+  log_metrics: true
+  log_params: true
+
+# Model Versioning
+versioning:
+  auto_register: true  # Automatically register models that meet criteria
+  promotion_criteria:
+    accuracy_threshold: 0.75
+    auc_threshold: 0.80

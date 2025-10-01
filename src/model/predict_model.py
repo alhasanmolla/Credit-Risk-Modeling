@@ -100,5 +100,5 @@ if __name__ == '__main__':
     # Or use an MLflow logged model (if you have the run ID):
     # predictor = ModelPredictor(mlflow_model_uri='runs:/<RUN_ID>/model')
 
-    predictions = predictor.run_pipeline('./data/processed/test_features.csv')
+    predictions = predictor.run_pipeline('./datas/processed/test_features.csv')
     print(predictions.head())

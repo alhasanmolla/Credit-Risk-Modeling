@@ -23,8 +23,8 @@ class DataPreprocessing():
     def main():
         try:
             # Fetch the data from data/raw
-            train_data = pd.read_csv('./data/raw/train.csv')
-            test_data = pd.read_csv('./data/raw/test.csv')
+            train_data = pd.read_csv('./datas/raw/train.csv')
+            test_data = pd.read_csv('./datas/raw/test.csv')
             logging.info('data loaded properly')
 
             # Transform the data
@@ -32,7 +32,7 @@ class DataPreprocessing():
             test_processed_data = DataPreprocessing.preprocess_dataframe(test_data)
 
             # Store the data inside data/processed
-            data_path = os.path.join("./data", "interim")
+            data_path = os.path.join("./datas", "interim")
             os.makedirs(data_path, exist_ok=True)
         
             train_processed_data.to_csv(os.path.join(data_path, "train_processed.csv"), index=False)

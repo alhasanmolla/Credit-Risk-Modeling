@@ -7,8 +7,8 @@ stages:
       - notebooks/data_processing.csv
       - params.yaml
     outs:
-      - data/raw/train.csv
-      - data/raw/test.csv
+      - datas/raw/train.csv
+      - datas/raw/test.csv
     params:
       - data_ingestion.test_size
 
@@ -17,23 +17,23 @@ stages:
     cmd: python src/data/data_preprocessing.py
     deps:
       - src/data/data_preprocessing.py
-      - data/raw/train.csv
-      - data/raw/test.csv
+      - datas/raw/train.csv
+      - datas/raw/test.csv
     outs:
-      - data/interim/train_processed.csv
-      - data/interim/test_processed.csv
+      - datas/interim/train_processed.csv
+      - datas/interim/test_processed.csv
 
   # Feature Engineering Stage
   feature_engineering:
     cmd: python src/features/feature_engineering.py
     deps:
       - src/features/feature_engineering.py
-      - data/interim/train_processed.csv
-      - data/interim/test_processed.csv
+      - datas/interim/train_processed.csv
+      - datas/interim/test_processed.csv
       - params.yaml
     outs:
-      - data/processed/train_features.csv
-      - data/processed/test_features.csv
+      - datas/processed/train_features.csv
+      - datas/processed/test_features.csv
       - models/feature_scaler.pkl
     params:
       - feature_engineering.max_features
@@ -43,8 +43,10 @@ stages:
     cmd: python src/model/model_building.py
     deps:
       - src/model/model_building.py
-      - data/processed/train_features.csv
+      - src/model/mlflow_utils.py
+      - datas/processed/train_features.csv
       - config.yaml
+      - mlflow_config.yaml
     outs:
       - models/rnn_model.h5
     params:
@@ -65,11 +67,15 @@ stages:
     cmd: python src/model/model_evaluation.py
     deps:
       - src/model/model_evaluation.py
+      - src/model/mlflow_utils.py
       - models/rnn_model.h5
-      - data/processed/test_features.csv
+      - datas/processed/test_features.csv
+      - mlflow_config.yaml
     metrics:
       - reports/metrics.json:
           cache: false
+    outs:
+      - reports/figures/
 
   # Model Prediction Stage
   model_prediction:
@@ -77,7 +83,7 @@ stages:
     deps:
       - src/model/predict_model.py
       - models/rnn_model.h5
-      - data/processed/test_features.csv
+      - datas/processed/test_features.csv
     outs:
       - reports/predictions.csv
 
@@ -86,21 +92,39 @@ stages:
     cmd: python src/model/register_model.py
     deps:
       - src/model/register_model.py
+      - src/model/mlflow_utils.py
+      - src/model/model_registry.py
       - models/rnn_model.h5
       - reports/metrics.json
-      - reports/experiment_info.json
+      - mlflow_config.yaml
     outs:
-      - mlruns/
+      - mlruns/:
+          persist: true
+    metrics:
+      - reports/experiment_info.json:
+          cache: false
+          persist: true
 
+  # Model Production Management
+  model_production:
+    cmd: python src/model/production_model_manager.py
+    deps:
+      - src/model/production_model_manager.py
+      - src/model/mlflow_utils.py
+      - src/model/model_registry.py
+      - models/rnn_model.h5
+      - models/feature_scaler.pkl
+      - mlflow_config.yaml
+      - reports/metrics.json
+    outs:
+      - models/production_model.h5
   # Data Visualization Stage
   data_visualization:
     cmd: python src/visualization/visualize.py
     deps:
       - src/visualization/visualize.py
-      - data/processed/train_features.csv
-      - data/processed/test_features.csv
-    outs:
-      - reports/figures/
+      - datas/processed/train_features.csv
+      - datas/processed/test_features.csv
 
   # FastAPI Model Testing
   api_model_testing:

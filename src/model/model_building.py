@@ -9,14 +9,21 @@ from tensorflow.keras import regularizers, optimizers, initializers
 import optuna
 import logging
 import os
+import mlflow
+import mlflow.tensorflow
+import json
 
 logging.basicConfig(level=logging.INFO)
 
 class ModelBuilding:
-    def __init__(self, config_path='config.yaml', model_path='models/rnn_model.h5'):
+    def __init__(self, config_path='config.yaml', model_path='models/rnn_model.h5', mlflow_config_path='mlflow_config.yaml'):
         self.config_path = config_path
         self.model_path = model_path
         self.config = self.load_config(config_path)
+        
+        # Initialize MLFlow manager
+        from src.model.mlflow_utils import MLFlowManager
+        self.mlflow_manager = MLFlowManager(mlflow_config_path)
 
     @staticmethod
     def load_config(config_path):
@@ -114,34 +121,134 @@ class ModelBuilding:
         logging.info(f"Best Optuna params: {study.best_trial.params}")
         return study.best_trial
 
-    def full_train_pipeline(self, train_file='./data/processed/train_features.csv'):
-        df = self.load_data(train_file)
-        
-        # Convert boolean columns to integers
-        for col in df.select_dtypes(include=['bool']).columns:
-            df[col] = df[col].astype(int)
-        
-        # Convert target variable to numeric (good=1, bad=0)
-        df['Risk'] = df['Risk'].map({'good': 1, 'bad': 0})
-        
-        X = df.iloc[:, :-1].values
-        y = df.iloc[:, -1].values
-        X_val, y_val = X[:100], y[:100]
-        X_train, y_train = X[100:], y[100:]
-        
-        # Reshape for LSTM: (samples, timesteps, features)
-        # Use 24 timesteps with 1 feature each (or vice versa)
-        X_train = X_train.reshape((X_train.shape[0], 24, 1))
-        X_val = X_val.reshape((X_val.shape[0], 24, 1))
-        
-        print(f"X_train shape: {X_train.shape}")
-        print(f"y_train shape: {y_train.shape}")
-        print(f"X_val shape: {X_val.shape}")
-        print(f"y_val shape: {y_val.shape}")
+    def full_train_pipeline(self, train_file='./datas/processed/train_features.csv'):
+        """Full training pipeline including data preparation, model training, and MLFlow tracking"""
+        try:
+            # Start MLflow run with tags
+            run_tags = {
+                "model_type": "credit_risk_rnn",
+                "training_type": "full_pipeline",
+                "framework": "tensorflow",
+                "optimization": "optuna"
+            }
+            
+            with self.mlflow_manager.start_run(tags=run_tags) as run:
+                # Load and preprocess data
+                df = self.load_data(train_file)
+                
+                # Convert boolean columns to integers
+                for col in df.select_dtypes(include=['bool']).columns:
+                    df[col] = df[col].astype(int)
+                
+                # Convert target variable to numeric (good=1, bad=0)
+                df['Risk'] = df['Risk'].map({'good': 1, 'bad': 0})
+                
+                X = df.iloc[:, :-1].values
+                y = df.iloc[:, -1].values
+                X_val, y_val = X[:100], y[:100]
+                X_train, y_train = X[100:], y[100:]
+                
+                # Reshape for LSTM: (samples, timesteps, features)
+                X_train = X_train.reshape((X_train.shape[0], 24, 1))
+                X_val = X_val.reshape((X_val.shape[0], 24, 1))
+                
+                print(f"X_train shape: {X_train.shape}")
+                print(f"y_train shape: {y_train.shape}")
+                print(f"X_val shape: {X_val.shape}")
+                print(f"y_val shape: {y_val.shape}")
 
-        best_trial = self.run_optuna(X_train, y_train, X_val, y_val)
-        final_model = self.train_model(X_train, y_train, X_val, y_val, trial=best_trial)
-        self.save_model(final_model)
+                # Log data parameters (these are safe to log as they don't conflict)
+                data_params = {
+                    "train_samples": len(X_train),
+                    "val_samples": len(X_val),
+                    "features": X_train.shape[2],
+                    "timesteps": X_train.shape[1]
+                }
+                self.mlflow_manager.log_params(data_params)
+
+                # Run hyperparameter optimization
+                best_trial = self.run_optuna(X_train, y_train, X_val, y_val)
+                
+                # Log only the Optuna parameters that are different from config
+                optuna_params = {}
+                for key, value in best_trial.params.items():
+                    if key not in self.config or self.config[key] != value:
+                        optuna_params[key] = value
+                
+                if optuna_params:
+                    self.mlflow_manager.log_params(optuna_params)
+                
+                # Train final model with best parameters
+                final_model = self.train_model(X_train, y_train, X_val, y_val, trial=best_trial)
+                
+                # Evaluate model
+                train_loss, train_acc = final_model.evaluate(X_train, y_train, verbose=0)
+                val_loss, val_acc = final_model.evaluate(X_val, y_val, verbose=0)
+                
+                # Prepare metrics
+                metrics = {
+                    "train_accuracy": train_acc,
+                    "train_loss": train_loss,
+                    "val_accuracy": val_acc,
+                    "val_loss": val_loss
+                }
+                
+                # Log metrics
+                self.mlflow_manager.log_metrics(metrics)
+                
+                # Save model locally
+                self.save_model(final_model)
+                
+                # Log and register model with MLFlow
+                self.mlflow_manager.log_model(
+                    final_model,
+                    artifact_path="model",
+                    registered_model_name="credit_risk_rnn"
+                )
+                
+                # Check if model should be registered based on performance criteria
+                if self.mlflow_manager.should_register_model(metrics):
+                    model_version = self.mlflow_manager.register_model(
+                        f"runs:/{run.info.run_id}/model",
+                        "credit_risk_rnn"
+                    )
+                    logging.info(f"Model registered with version: {model_version}")
+                    
+                    # Transition to staging if metrics are good enough
+                    if metrics['val_accuracy'] > 0.85:
+                        self.mlflow_manager.transition_model_stage(
+                            "credit_risk_rnn",
+                            model_version,
+                            "Staging"
+                        )
+                        logging.info(f"Model version {model_version} transitioned to Staging")
+                
+                # Save experiment info
+                experiment_info = {
+                    "run_id": run.info.run_id,
+                    "model_path": "model",
+                    "experiment_id": run.info.experiment_id,
+                    "model_name": "credit_risk_rnn",
+                    "metrics": {
+                        **metrics,
+                        "precision": 0.0,  # Will be calculated in evaluation
+                        "recall": 0.0,     # Will be calculated in evaluation
+                        "auc": 0.0         # Will be calculated in evaluation
+                    }
+                }
+                
+                with open('reports/experiment_info.json', 'w') as f:
+                    json.dump(experiment_info, f, indent=4)
+                
+                # Log artifacts
+                self.mlflow_manager.log_artifacts('reports')
+                
+                print(f"MLflow run completed: {run.info.run_id}")
+                return run.info.run_id
+                
+        except Exception as e:
+            logging.error(f"Error in training pipeline: {str(e)}")
+            raise
 
 if __name__ == '__main__':
     trainer = ModelBuilding()
